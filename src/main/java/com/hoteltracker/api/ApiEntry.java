@@ -19,7 +19,5 @@ public class ApiEntry {
         int totalCount = wrapper.getTotalCountWithFilters();
 
         dc.saveToDatabase(dailyRecords, totalCount);
-
-        System.out.println("Data collection complete. " + dailyRecords.size() + " rows inserted.");
     }
 }

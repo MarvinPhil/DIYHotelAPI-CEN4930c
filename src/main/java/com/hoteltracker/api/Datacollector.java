@@ -7,11 +7,17 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Datacollector {
     private String apiKey = "24b4f6a8e1msha07236eb39131e8p1ebadbjsn23cdfb3f73d5";
+    private static String URL = "jdbc:sqlite:hotel_tracker.db";
+    private static String URLTwo = "jdbc:sqlite:C:/letos(previously_sqlitestudio)/letos-4.0.0-windows-x64/Letos/hotel_tracker.db";
 
 
     public String fetchData() throws IOException, InterruptedException {
@@ -72,6 +78,41 @@ public class Datacollector {
 
     public void saveToDatabase(List<HotelRecord> dailyRecords, int total){
         System.out.println("Saving Hotel Records to database...");
+
+        String sql = "INSERT INTO hotel_prices(capture_date, hotel_name, target_stay_date, price, currency, total_matching_filters) VALUES (?, ?, ?, ?, ?, ?)";
+
+
+        Connection conn = null;
+
+
+        try {
+            conn = DriverManager.getConnection(URLTwo);
+            System.out.println("Connected to SQLite database.");
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+
+            for (HotelRecord record : dailyRecords){
+                pstmt.setString(1, record.getCaptureDate());
+                pstmt.setString(2, record.getHotel_name());
+                pstmt.setString(3, record.gettargetStayDate());
+                pstmt.setDouble(4, record.getMin_total_price());
+                pstmt.setString(5, record.getCurrencycode());
+                pstmt.setInt(6, total);
+
+                pstmt.addBatch();
+
+            }
+
+            // 5. Send all rows to the database in a single network trip
+            int[] rowsInserted = pstmt.executeBatch();
+
+            System.out.println("Data added successfully. Rows inserted: " + rowsInserted.length);
+
+        } catch (SQLException e) {
+            System.out.println("Connection failed.");
+            e.printStackTrace();
+        }
+
+
     }
 
 

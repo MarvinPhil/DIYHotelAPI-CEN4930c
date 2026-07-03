@@ -10,9 +10,25 @@ public class HotelRecord {
     private String currencycode;
     private int total_count_with_filters;
 
-    public void setTotalCountWithFilters(int count) {
-        this.total_count_with_filters = count;
+    public int getTotalCountWithFilters() {
+        return total_count_with_filters;
     }
+    public String getCaptureDate() {
+        return captureDate;
+    }
+    public String gettargetStayDate() {
+        return targetStayDate;
+    }
+    public String getHotel_name() {
+        return hotel_name;
+    }
+    public double getMin_total_price() {
+        return min_total_price;
+    }
+    public String getCurrencycode() {
+        return currencycode;
+    }
+
 
 
 
