@@ -70,6 +70,10 @@ public class Datacollector {
 
     }
 
+    public void saveToDatabase(List<HotelRecord> dailyRecords, int total){
+        System.out.println("Saving Hotel Records to database...");
+    }
+
 
 
 }

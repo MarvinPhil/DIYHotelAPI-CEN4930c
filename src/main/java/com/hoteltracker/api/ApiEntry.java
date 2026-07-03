@@ -18,6 +18,8 @@ public class ApiEntry {
         BookingResponse wrapper = gson.fromJson(rawJson, BookingResponse.class);
         int totalCount = wrapper.getTotalCountWithFilters();
 
-        //save dc.saveToDatabase(dailyRecords, totalCount);
+        dc.saveToDatabase(dailyRecords, totalCount);
+
+        System.out.println("Data collection complete. " + dailyRecords.size() + " rows inserted.");
     }
 }
