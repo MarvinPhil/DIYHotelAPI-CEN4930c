@@ -38,7 +38,7 @@ public class Datacollector {
             String jsonResponse = response.body();
             JsonR = jsonResponse;
 
-            System.out.println("JSON Response: " + jsonResponse);
+            //System.out.println("JSON Response: " + jsonResponse);
 
 
         } catch(IOException e){
