@@ -3,22 +3,22 @@ package com.hoteltracker.api;
 import java.time.LocalDate;
 
 public class HotelRecord {
-    private String captureDate = LocalDate.now().toString();
+    //private String captureDate = LocalDate.now().toString();
     private String hotel_name;
-    private String targetStayDate = "2026-08-28";
+    //private String targetStayDate = "2026-08-28";
     private double min_total_price;
     private String currencycode;
-    private int total_count_with_filters;
+   // private int total_count_with_filters;
 
-    public int getTotalCountWithFilters() {
+   /* public int getTotalCountWithFilters() {
         return total_count_with_filters;
-    }
-    public String getCaptureDate() {
+    }*/
+    /*public String getCaptureDate() {
         return captureDate;
-    }
-    public String gettargetStayDate() {
+    }*/
+    /*public String gettargetStayDate() {
         return targetStayDate;
-    }
+    }*/
     public String getHotel_name() {
         return hotel_name;
     }
@@ -33,9 +33,9 @@ public class HotelRecord {
 
 
     public String toString(){
-        return "\nHotel Entry: "+ hotel_name +" | "+targetStayDate+" | "+ min_total_price +
+        return "\nHotel Entry: "+ hotel_name +" | "+" | "+ min_total_price +
                 " "+ currencycode +" | "+
-                " \n "+ captureDate;
+                " \n ";
     }
 
 

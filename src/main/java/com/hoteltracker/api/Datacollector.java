@@ -7,10 +7,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +22,7 @@ public class Datacollector {
         try{
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://booking-com.p.rapidapi.com/v1/hotels/search?page_number=0&dest_type=city&dest_id=20088325&units=metric&children_number=2&locale=en-us&categories_filter_ids=class%3A%3A2%2Cclass%3A%3A4%2Cfree_cancellation%3A%3A1&children_ages=5%2C0&include_adjacency=true&filter_by_currency=USD&order_by=price&checkin_date=2026-08-28&checkout_date=2026-08-29&room_number=1&adults_number=2"))//<-/**/
+                    .uri(URI.create("https://booking-com.p.rapidapi.com/v1/hotels/search?page_number=0&dest_type=city&dest_id=20088325&units=metric&children_number=2&locale=en-us&categories_filter_ids=class%3A%3A2%2Cclass%3A%3A4%2Cfree_cancellation%3A%3A1&children_ages=5%2C0&include_adjacency=true&filter_by_currency=USD&order_by=popularity&checkin_date=2026-08-28&checkout_date=2026-08-29&room_number=1&adults_number=2"))//<-/**/
                     .header("X-RapidAPI-Key", apiKey)
                     .header("X-RapidAPI-Host", "booking-com.p.rapidapi.com")
                     .GET()
@@ -76,36 +73,69 @@ public class Datacollector {
 
     }
 
-    public void saveToDatabase(List<HotelRecord> dailyRecords, int total){
+    public void saveToDatabase(List<HotelRecord> dailyRecords, int total, BookingResponse wrapper){
         System.out.println("Saving Hotel Records to database...");
 
-        String sql = "INSERT INTO hotel_prices(capture_date, hotel_name, target_stay_date, price, currency, total_matching_filters) VALUES (?, ?, ?, ?, ?, ?)";
+        String captureDate = java.time.LocalDate.now().toString();
+        String targetStayDate = "2026-08-28";
+
+        String hotelsql = "INSERT INTO hotelprices(snapshot_id, hotel_name, price, currency) VALUES (?, ?, ?, ?)";
+        String dailysql = "INSERT INTO dailysnapshots(capture_date, target_stay_date, total_hotels_available) VALUES (?, ?, ?)";
 
 
         Connection conn = null;
 
 
+
+
         try {
             conn = DriverManager.getConnection(URLTwo);
             System.out.println("Connected to SQLite database.");
-            PreparedStatement pstmt = conn.prepareStatement(sql);
 
-            for (HotelRecord record : dailyRecords){
-                pstmt.setString(1, record.getCaptureDate());
-                pstmt.setString(2, record.getHotel_name());
-                pstmt.setString(3, record.gettargetStayDate());
-                pstmt.setDouble(4, record.getMin_total_price());
-                pstmt.setString(5, record.getCurrencycode());
-                pstmt.setInt(6, total);
+            try (Statement pragmaStmt = conn.createStatement()) {
+                pragmaStmt.execute("PRAGMA foreign_keys = ON;");
+            }
 
-                pstmt.addBatch();
+            PreparedStatement hotelStmt = conn.prepareStatement(hotelsql);
+            PreparedStatement dailyStmt = conn.prepareStatement(dailysql, Statement.RETURN_GENERATED_KEYS);
+
+
+
+            int generatedSnapshotId = -1;
+
+            //snapshot table
+            try (dailyStmt) {
+                dailyStmt.setString(1, captureDate);
+                dailyStmt.setString(2, targetStayDate);
+                dailyStmt.setInt(3, total);
+                dailyStmt.executeUpdate();
+
+                // Read the generated snapshot_id out of the database memory
+
+                try (ResultSet rs = dailyStmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        generatedSnapshotId = rs.getInt(1);
+                    }
+                }}
+
+            try(hotelStmt){
+                for (HotelRecord record : dailyRecords){
+                hotelStmt.setInt(1, generatedSnapshotId);
+                hotelStmt.setString(2, record.getHotel_name());
+                hotelStmt.setDouble(3, record.getMin_total_price());
+                hotelStmt.setString(4, record.getCurrencycode());
+
+                hotelStmt.addBatch();
 
             }
 
-            // 5. Send all rows to the database in a single network trip
-            int[] rowsInserted = pstmt.executeBatch();
+                //Send all rows to the database in a single network trip
+                int[] rowsInserted = hotelStmt.executeBatch();
+                System.out.println("Data added successfully. Rows inserted: " + rowsInserted.length);
+            }
 
-            System.out.println("Data added successfully. Rows inserted: " + rowsInserted.length);
+
+
 
         } catch (SQLException e) {
             System.out.println("Connection failed.");
