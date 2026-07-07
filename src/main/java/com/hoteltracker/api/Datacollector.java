@@ -76,7 +76,12 @@ public class Datacollector {
     public void saveToDatabase(List<HotelRecord> dailyRecords, int total, BookingResponse wrapper){
         System.out.println("Saving Hotel Records to database...");
 
-        String captureDate = java.time.LocalDate.now().toString();
+        //String captureDate = java.time.LocalDate.now().toString();
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String captureDate = now.format(formatter);
+
         String targetStayDate = "2026-08-28";
 
         String hotelsql = "INSERT INTO hotelprices(snapshot_id, hotel_name, price, currency) VALUES (?, ?, ?, ?)";
